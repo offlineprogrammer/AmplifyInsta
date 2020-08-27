@@ -1,5 +1,6 @@
 package com.offlineprogrammer.amplifyinsta;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -10,10 +11,15 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.amplifyframework.core.Amplify;
+import com.amplifyframework.storage.StorageItem;
 import com.esafirm.imagepicker.features.ImagePicker;
 import com.esafirm.imagepicker.features.ReturnMode;
+import com.esafirm.imagepicker.model.Image;
 
+import java.io.File;
 import java.util.ArrayList;
+import java.util.UUID;
 
 public class MainActivity extends AppCompatActivity {
     RecyclerView recyclerView;
@@ -47,7 +53,71 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+
+        if (intent.getData() != null && "amplifyinsta".equals(intent.getData().getScheme())) {
+            Amplify.Auth.handleWebUISignInResponse(intent);
+        }
+    }
+
+
+    public void onActivityResult(int i, int i2, Intent intent) {
+        super.onActivityResult(i, i2, intent);
+        if (ImagePicker.shouldHandle(i, i2, intent)) {
+            Image firstImageOrNull = ImagePicker.getFirstImageOrNull(intent);
+            if (firstImageOrNull != null) {
+                uploadImage(firstImageOrNull.getPath());
+
+            }
+        }
+
+
+    }
+
+    private void uploadImage(String path) {
+        if (path != null) {
+
+
+            File exampleFile = new File(path);
+
+
+            Amplify.Storage.uploadFile(
+                    UUID.randomUUID().toString(),
+                    exampleFile,
+                    result -> Log.i("MyAmplifyApp", "Successfully uploaded: " + result.getKey()),
+                    storageFailure -> Log.e("MyAmplifyApp", "Upload failed", storageFailure)
+            );
+
+
+            // Code for showing progressDialog while uploading
+          /*  progressDialog = new ProgressDialog(this);
+            progressDialog.setTitle("Uploading...");
+            progressDialog.show();*/
+
+
+        } else {
+
+
+        }
+
+    }
+
+
     private ArrayList prepareData() {
+
+        Amplify.Storage.list(
+                "/",
+                result -> {
+                    for (StorageItem item : result.getItems()) {
+                        Log.i("MyAmplifyApp", "Item: " + item.getKey());
+
+                    }
+                },
+                error -> Log.e("MyAmplifyApp", "List failure", error)
+        );
 
 // here you should give your image URLs and that can be a link from the Internet
         String[] imageUrls = {

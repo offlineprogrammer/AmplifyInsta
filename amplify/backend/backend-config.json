@@ -1,15 +1,15 @@
 {
-	"auth": {
-		"amplifyinstaa67efe77": {
-			"service": "Cognito",
-			"providerPlugin": "awscloudformation",
-			"dependsOn": []
-		}
-	},
-	"storage": {
-		"s3c2172c4e": {
-			"service": "S3",
-			"providerPlugin": "awscloudformation"
-		}
-	}
+  "auth": {
+    "amplifyinstaa67efe77": {
+      "service": "Cognito",
+      "providerPlugin": "awscloudformation",
+      "dependsOn": []
+    }
+  },
+  "storage": {
+    "s3c2172c4e": {
+      "service": "S3",
+      "providerPlugin": "awscloudformation"
+    }
+  }
 }

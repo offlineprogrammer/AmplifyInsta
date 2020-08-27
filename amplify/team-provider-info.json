@@ -13,7 +13,10 @@
         },
         "categories": {
             "auth": {
-                "amplifyinstaa67efe77": {}
+              "amplifyinstaa67efe77": {
+                "amazonAppId": "amzn1.application-oa2-client.dba219229485438a8220b31f44b4e711",
+                "hostedUIProviderCreds": "[{\"ProviderName\":\"LoginWithAmazon\",\"client_id\":\"amzn1.application-oa2-client.dba219229485438a8220b31f44b4e711\",\"client_secret\":\"6aae44585c670727eefa4b278409308a15cdd7c2b0ea6841d7196e9a957ad54b\"}]"
+              }
             }
         }
     }

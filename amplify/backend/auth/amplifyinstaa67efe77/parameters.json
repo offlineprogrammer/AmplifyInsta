@@ -1,16 +1,16 @@
 {
-    "identityPoolName": "amplifyinstaa67efe77_identitypool_a67efe77",
-    "allowUnauthenticatedIdentities": true,
-    "resourceNameTruncated": "amplifa67efe77",
-    "userPoolName": "amplifyinstaa67efe77_userpool_a67efe77",
-    "autoVerifiedAttributes": [
-        "email"
-    ],
-    "mfaConfiguration": "OFF",
-    "mfaTypes": [
-        "SMS Text Message"
-    ],
-    "smsAuthenticationMessage": "Your authentication code is {####}",
+  "identityPoolName": "amplifyinstaa67efe77_identitypool_a67efe77",
+  "allowUnauthenticatedIdentities": false,
+  "resourceNameTruncated": "amplifa67efe77",
+  "userPoolName": "amplifyinstaa67efe77_userpool_a67efe77",
+  "autoVerifiedAttributes": [
+    "email"
+  ],
+  "mfaConfiguration": "OFF",
+  "mfaTypes": [
+    "SMS Text Message"
+  ],
+  "smsAuthenticationMessage": "Your authentication code is {####}",
     "smsVerificationMessage": "Your verification code is {####}",
     "emailVerificationSubject": "Your verification code",
     "emailVerificationMessage": "Your verification code is {####}",
@@ -35,17 +35,35 @@
     "authSelections": "identityPoolAndUserPool",
     "authRoleArn": {
         "Fn::GetAtt": [
-            "AuthRole",
-            "Arn"
+          "AuthRole",
+          "Arn"
         ]
     },
-    "unauthRoleArn": {
-        "Fn::GetAtt": [
-            "UnauthRole",
-            "Arn"
-        ]
-    },
-    "useDefault": "default",
-    "userPoolGroupList": [],
-    "dependsOn": []
+  "unauthRoleArn": {
+    "Fn::GetAtt": [
+      "UnauthRole",
+      "Arn"
+    ]
+  },
+  "useDefault": "manual",
+  "userPoolGroupList": [],
+  "dependsOn": [],
+  "thirdPartyAuth": true,
+  "authProviders": [
+    "www.amazon.com"
+  ],
+  "userPoolGroups": false,
+  "adminQueries": false,
+  "triggers": "{}",
+  "hostedUI": true,
+  "hostedUIDomainName": "amplifyinsta95c781c5-95c781c5",
+  "authProvidersUserPool": [
+    "LoginWithAmazon"
+  ],
+  "hostedUIProviderMeta": "[{\"ProviderName\":\"LoginWithAmazon\",\"authorize_scopes\":\"profile profile:user_id\",\"AttributeMapping\":{\"email\":\"email\",\"username\":\"user_id\"}}]",
+  "oAuthMetadata": "{\"AllowedOAuthFlows\":[\"code\"],\"AllowedOAuthScopes\":[\"phone\",\"email\",\"openid\",\"profile\",\"aws.cognito.signin.user.admin\"],\"CallbackURLs\":[\"amplifyinsta://callback/\"],\"LogoutURLs\":[\"amplifyinsta://signout/\"]}",
+  "parentStack": {
+    "Ref": "AWS::StackId"
+  },
+  "permissions": []
 }
