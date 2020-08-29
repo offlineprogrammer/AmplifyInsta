@@ -11,8 +11,13 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.amplifyframework.auth.cognito.AWSCognitoAuthSession;
 import com.amplifyframework.core.Amplify;
+import com.amplifyframework.storage.StorageAccessLevel;
 import com.amplifyframework.storage.StorageItem;
+import com.amplifyframework.storage.options.StorageGetUrlOptions;
+import com.amplifyframework.storage.options.StorageListOptions;
+import com.amplifyframework.storage.options.StorageUploadFileOptions;
 import com.esafirm.imagepicker.features.ImagePicker;
 import com.esafirm.imagepicker.features.ReturnMode;
 import com.esafirm.imagepicker.model.Image;
@@ -22,24 +27,23 @@ import java.util.ArrayList;
 import java.util.UUID;
 
 public class MainActivity extends AppCompatActivity {
+    private static final String TAG = "MainActivity";
     RecyclerView recyclerView;
     GridLayoutManager gridLayoutManager;
     private ImageView imageView;
     private Button camera_button;
+    AWSCognitoAuthSession cognitoAuthSession;
+    ImageUrlsAdapter dataAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        imageView = (ImageView) findViewById(R.id.imageView);
-        recyclerView = (RecyclerView) findViewById(R.id.recyclerView);
+        imageView = findViewById(R.id.imageView);
+        recyclerView = findViewById(R.id.recyclerView);
         camera_button = findViewById(R.id.camera_button);
         gridLayoutManager = new GridLayoutManager(getApplicationContext(), 2);
         recyclerView.setLayoutManager(gridLayoutManager);
-
-        ArrayList imageUrlList = prepareData();
-        ImageUrlsAdapter dataAdapter = new ImageUrlsAdapter(getApplicationContext(), imageUrlList);
-        recyclerView.setAdapter(dataAdapter);
 
 
         camera_button.setOnClickListener(new View.OnClickListener() {
@@ -50,18 +54,36 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        Amplify.Auth.fetchAuthSession(
+                result -> {
+                    cognitoAuthSession = (AWSCognitoAuthSession) result;
+                    switch (cognitoAuthSession.getIdentityId().getType()) {
+                        case SUCCESS:
+                            Log.i("AuthQuickStart", "IdentityId: " + cognitoAuthSession.getIdentityId().getValue());
+                            ArrayList imageUrlList = new ArrayList<>();
+
+                            dataAdapter = new ImageUrlsAdapter(getApplicationContext(), imageUrlList);
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    recyclerView.setAdapter(dataAdapter);
+                                }
+                            });
+                            prepareData();
+
+
+                            break;
+                        case FAILURE:
+                            Log.i("AuthQuickStart", "IdentityId not present because: " + cognitoAuthSession.getIdentityId().getError().toString());
+                    }
+                },
+                error -> Log.e("AuthQuickStart", error.toString())
+        );
+
 
     }
 
 
-    @Override
-    protected void onNewIntent(Intent intent) {
-        super.onNewIntent(intent);
-
-        if (intent.getData() != null && "amplifyinsta".equals(intent.getData().getScheme())) {
-            Amplify.Auth.handleWebUISignInResponse(intent);
-        }
-    }
 
 
     public void onActivityResult(int i, int i2, Intent intent) {
@@ -80,6 +102,12 @@ public class MainActivity extends AppCompatActivity {
     private void uploadImage(String path) {
         if (path != null) {
 
+            StorageUploadFileOptions options =
+                    StorageUploadFileOptions.builder()
+                            .accessLevel(StorageAccessLevel.PROTECTED)
+                            .targetIdentityId(cognitoAuthSession.getIdentityId().getValue())
+                            .build();
+
 
             File exampleFile = new File(path);
 
@@ -87,7 +115,26 @@ public class MainActivity extends AppCompatActivity {
             Amplify.Storage.uploadFile(
                     UUID.randomUUID().toString(),
                     exampleFile,
-                    result -> Log.i("MyAmplifyApp", "Successfully uploaded: " + result.getKey()),
+                    result -> {
+                        Log.i("MyAmplifyApp", "Successfully uploaded: " + result.getKey());
+                        Amplify.Storage.getUrl(result.getKey(),
+                                resultUrl -> {
+
+                                    Log.i("MyAmplifyApp", "Url: " + resultUrl.getUrl());
+
+                                    ImageUrl imageUrl = new ImageUrl();
+                                    imageUrl.setImageUrl(resultUrl.getUrl().toString());
+                                    runOnUiThread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            dataAdapter.add(imageUrl, 0);
+                                        }
+                                    });
+
+
+                                },
+                                errorURl -> Log.e(TAG, "prepareData: ", errorURl));
+                    },
                     storageFailure -> Log.e("MyAmplifyApp", "Upload failed", storageFailure)
             );
 
@@ -106,33 +153,52 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    private ArrayList prepareData() {
+    private void prepareData() {
+
+        StorageListOptions options = StorageListOptions.builder()
+                .accessLevel(StorageAccessLevel.PROTECTED)
+                .targetIdentityId(cognitoAuthSession.getIdentityId().getValue())
+                .build();
+
+
+        StorageGetUrlOptions sopp = StorageGetUrlOptions.builder()
+                .build();
+
+
+        ArrayList imageUrlList = new ArrayList<>();
 
         Amplify.Storage.list(
-                "/",
+                "",
+
                 result -> {
                     for (StorageItem item : result.getItems()) {
                         Log.i("MyAmplifyApp", "Item: " + item.getKey());
 
+                        Amplify.Storage.getUrl(item.getKey(),
+                                resultUrl -> {
+
+                                    Log.i("MyAmplifyApp", "Url: " + resultUrl.getUrl());
+
+                                    ImageUrl imageUrl = new ImageUrl();
+                                    imageUrl.setImageUrl(resultUrl.getUrl().toString());
+                                    runOnUiThread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            dataAdapter.add(imageUrl, 0);
+                                        }
+                                    });
+
+
+                                },
+                                errorURl -> Log.e(TAG, "prepareData: ", errorURl));
+
                     }
+
                 },
                 error -> Log.e("MyAmplifyApp", "List failure", error)
         );
 
-// here you should give your image URLs and that can be a link from the Internet
-        String[] imageUrls = {
-                "https://picsum.photos/id/1/5616/3744",
-                "https://picsum.photos/id/1000/5626/3635",
-                "https://picsum.photos/id/1006/3000/2000",
-                "https://picsum.photos/id/1016/3844/2563"};
 
-        ArrayList imageUrlList = new ArrayList<>();
-        for (int i = 0; i < imageUrls.length; i++) {
-            ImageUrl imageUrl = new ImageUrl();
-            imageUrl.setImageUrl(imageUrls[i]);
-            imageUrlList.add(imageUrl);
-        }
-        Log.d("MainActivity", "List count: " + imageUrlList.size());
-        return imageUrlList;
+//        return imageUrlList;
     }
 }

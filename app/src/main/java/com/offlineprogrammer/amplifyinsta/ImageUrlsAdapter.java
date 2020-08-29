@@ -1,6 +1,7 @@
 package com.offlineprogrammer.amplifyinsta;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,6 +14,7 @@ import com.bumptech.glide.Glide;
 import java.util.ArrayList;
 
 public class ImageUrlsAdapter extends RecyclerView.Adapter<ImageUrlsAdapter.ViewHolder> {
+    private static final String TAG = "ImageUrlsAdapter";
     private ArrayList<ImageUrl> imageUrls;
     private Context context;
 
@@ -26,6 +28,14 @@ public class ImageUrlsAdapter extends RecyclerView.Adapter<ImageUrlsAdapter.View
     public ImageUrlsAdapter.ViewHolder onCreateViewHolder(ViewGroup viewGroup, int i) {
         View view = LayoutInflater.from(viewGroup.getContext()).inflate(R.layout.image_itemview, viewGroup, false);
         return new ViewHolder(view);
+    }
+
+    public void add(ImageUrl item, int position) {
+        imageUrls.add(position, item);
+        Log.i(TAG, "add: " + item.toString());
+        notifyItemInserted(position);
+        //notifyDataSetChanged();
+        //notifyItemRangeChanged(0, getItemCount());
     }
 
     /**
